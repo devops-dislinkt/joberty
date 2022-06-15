@@ -11,7 +11,9 @@ def seed_db():
     pera = User(
         {
             "username": "pera_test",
-            "password": generate_password_hash("perapera")
+            "password": generate_password_hash("perapera"),
+            "approved": True
+
         }
     )
     mika = User(
@@ -108,8 +110,12 @@ class TestSignup:
 class TestClassLogin:
     '''Test case for when user logs in.'''
 
-    def test_login_success(self, client: FlaskClient, pera: User):
-        response = client.post('/api/login', json = {'username': pera.username, 'password': 'perapera'})
+    def test_login_while_not_approved(self, client: FlaskClient):
+        response = client.post('/api/login', json = {'username': 'mika_test', 'password': 'mikamika'})
+        assert response.status_code == 403
+
+    def test_login_success(self, client: FlaskClient):
+        response = client.post('/api/login', json = {'username': 'pera_test', 'password': 'perapera'})
         assert response.status_code == 200
 
     def test_login_with_wrong_username(self, client: FlaskClient):

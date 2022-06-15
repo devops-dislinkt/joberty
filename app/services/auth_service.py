@@ -12,12 +12,17 @@ class AuthException(Exception):
     def __init__(self, message):            
         super().__init__(message)
 
+class NotApproved(Exception):
+    '''When user registration is not approved by admin.'''
+    def __init__(self, message):            
+        super().__init__(message)
+
 
 def signup(username: str, password: str):
     '''creates new user with given username and password. '''
     
     pass_hash = generate_password_hash(password)
-    user = User({'username': username, 'password': pass_hash})
+    user = User({'username': username, 'password': pass_hash, 'approved': False})
     return database.add_or_update(user)
 
 def login(username: str, password: str):
@@ -32,6 +37,11 @@ def login(username: str, password: str):
     is_password_correct = check_password_hash(user.password, password)
     if not is_password_correct:
         raise AuthException('wrong password provided')
+
+    
+    # check if admin approved user
+    if not user.approved:
+        raise NotApproved('user not approved')
     
     token = jwt.encode({'username': user.username, 'role': user.role.name, 'exp': datetime.utcnow() + timedelta(minutes=30)},
                         current_app.config['SECRET_KEY'],

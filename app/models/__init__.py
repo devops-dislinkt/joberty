@@ -18,7 +18,10 @@ class User(db.Model, SerializerMixin):
     username:str = db.Column(db.String(80), unique=True, nullable=False)
     password: str = db.Column(db.String(200), unique=False, nullable=False)
     role: UserRole = db.Column(db.Enum(UserRole), default=UserRole.user, nullable=True)
+    approved: bool = db.Column(db.Boolean, default=False) # approval for registration
 
     def __init__(self, fields: dict) -> None:
     # merge dictionaries
         self.__dict__ = {**self.__dict__, **fields}
+
+        

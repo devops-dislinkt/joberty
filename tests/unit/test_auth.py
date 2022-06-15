@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError, NoResultFound
 import jwt
 
-from app.services.auth_service import AuthException
+from app.services.auth_service import AuthException, NotApproved
 
 def seed_db():
     mika = User(
@@ -17,8 +17,22 @@ def seed_db():
             "password": generate_password_hash("mikamika")
         }
     )
+    zika = User(
+        {
+            "username": "zika_test",
+            "password": generate_password_hash("zikazika"),
+            "approved": True
+        }
+    )
+    admin = User(
+        {
+            "username": "admin_test",
+            "password": generate_password_hash("adminadmin"),
+            "approved": True
+        }
+    )
 
-    users = [mika]
+    users = [mika, zika, admin]
     db.session.bulk_save_objects(users)
     db.session.commit()
 
@@ -51,6 +65,7 @@ class TestSignup:
         created_user = auth_service.signup(incoming_data['username'], incoming_data['password'])
         assert incoming_data['username'] == created_user.username
         assert check_password_hash(created_user.password, incoming_data['password'])
+        assert created_user.approved == False
 
     @pytest.mark.parametrize('invalid_data', [{'username': 'pera'}, {'password': 'perapera'}, {}])
     def test_signup_with_invalid_data(self, app: Flask, invalid_data):
@@ -66,21 +81,26 @@ class TestSignup:
         with pytest.raises(IntegrityError):
             auth_service.signup(incoming_data['username'], incoming_data['password'])
         
-        assert len(database.get_all(User)) == 2
+        assert len(database.get_all(User)) == 4
 
 
 class TestClassLogin:
     '''Test case for when user logs in.'''
 
     def test_login_success(self, app: Flask):
-        incoming_data = {'username': 'mika_test', 'password': 'mikamika'}
+        incoming_data = {'username': 'zika_test', 'password': 'zikazika'}
         token = auth_service.login(incoming_data['username'], incoming_data['password'])
         assert token != None
         
         # decode token
         decoded:dict =  jwt.decode(jwt=token, key=app.config['SECRET_KEY'], algorithms=['HS256'])
         assert decoded['username'] == incoming_data['username']
-        assert decoded['role'] == 'user'
+    
+
+    def test_login_while_not_approved(self, app: Flask):
+        incoming_data = {'username': 'mika_test', 'password': 'mikamika'}
+        with pytest.raises(NotApproved):
+            token = auth_service.login(incoming_data['username'], incoming_data['password'])
 
 
     def test_login_with_wrong_username(self, app: Flask):
@@ -88,6 +108,7 @@ class TestClassLogin:
         with pytest.raises(NoResultFound):
             auth_service.login(incoming_data['username'], incoming_data['password'])
         assert True
+
 
     def test_login_with_wrong_password(self, app: Flask):
         incoming_data = {'username': 'mika_test', 'password': 'trash'}

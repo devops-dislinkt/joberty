@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from app import database
 from app.models import User
 from app.services import auth_service
-from app.services.auth_service import AuthException
+from app.services.auth_service import AuthException, NotApproved
 from sqlalchemy.exc import IntegrityError
 
 
@@ -48,3 +48,5 @@ def login():
         return jsonify(token)
     except AuthException as e:
         return jsonify(str(e)), 400
+    except NotApproved as e:
+        return jsonify(str(e)), 403

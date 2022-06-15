@@ -103,3 +103,26 @@ class TestSignup:
         incoming_data = {'username': 'pera', 'password': 'perapera'}
         response = client.post('/api/signup', json=incoming_data)
         assert response.status_code == 400
+
+
+class TestClassLogin:
+    '''Test case for when user logs in.'''
+
+    def test_login_success(self, client: FlaskClient, pera: User):
+        response = client.post('/api/login', json = {'username': pera.username, 'password': 'perapera'})
+        assert response.status_code == 200
+
+    def test_login_with_wrong_username(self, client: FlaskClient):
+        incoming_data = {'username': 'trash', 'password': 'perapera'}
+        response = client.post('/api/login', json = {'username': incoming_data['username'], 'password': incoming_data['password']})
+        assert response.status_code == 404
+
+    def test_login_with_wrong_password(self, client: FlaskClient):
+        incoming_data = {'username': 'pera_test', 'password': 'trash'}
+        response = client.post('/api/login', json = {'username': incoming_data['username'], 'password': incoming_data['password']})        
+        assert response.status_code == 400
+
+    def test_login_without_password(self, client: FlaskClient):
+        incoming_data = {'username': 'pera_test'}
+        response = client.post('/api/login', json = {'username': incoming_data['username']})        
+        assert response.status_code == 400

@@ -4,11 +4,23 @@ from app import create_app, db
 from app import database
 from app.services import auth_service
 from app.models import User
-from werkzeug.security import check_password_hash
-from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy.exc import IntegrityError, NoResultFound
+import jwt
+
+from app.services.auth_service import AuthException
 
 def seed_db():
-    pass
+    mika = User(
+        {
+            "username": "mika_test",
+            "password": generate_password_hash("mikamika")
+        }
+    )
+
+    users = [mika]
+    db.session.bulk_save_objects(users)
+    db.session.commit()
 
 
 @pytest.fixture
@@ -54,4 +66,31 @@ class TestSignup:
         with pytest.raises(IntegrityError):
             auth_service.signup(incoming_data['username'], incoming_data['password'])
         
-        assert len(database.get_all(User)) == 1
+        assert len(database.get_all(User)) == 2
+
+
+class TestClassLogin:
+    '''Test case for when user logs in.'''
+
+    def test_login_success(self, app: Flask):
+        incoming_data = {'username': 'mika_test', 'password': 'mikamika'}
+        token = auth_service.login(incoming_data['username'], incoming_data['password'])
+        assert token != None
+        
+        # decode token
+        decoded:dict =  jwt.decode(jwt=token, key=app.config['SECRET_KEY'], algorithms=['HS256'])
+        assert decoded['username'] == incoming_data['username']
+        assert decoded['role'] == 'user'
+
+
+    def test_login_with_wrong_username(self, app: Flask):
+        incoming_data = {'username': 'trash', 'password': 'mikamika'}
+        with pytest.raises(NoResultFound):
+            auth_service.login(incoming_data['username'], incoming_data['password'])
+        assert True
+
+    def test_login_with_wrong_password(self, app: Flask):
+        incoming_data = {'username': 'mika_test', 'password': 'trash'}
+        with pytest.raises(AuthException):
+            auth_service.login(incoming_data['username'], incoming_data['password'])
+        assert True

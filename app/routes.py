@@ -3,9 +3,12 @@ from flask import Blueprint, jsonify, request
 from app import database
 from app.models import User
 from app.services import auth_service
+from app.services.auth_service import AuthException
+from sqlalchemy.exc import IntegrityError
+
+
 api = Blueprint('api', __name__)
 import app.routes_utils
-from sqlalchemy.exc import IntegrityError
 
 @api.get('/test')
 def test():
@@ -30,3 +33,18 @@ def signup():
         return 'username not unique', 400
 
 
+@api.post('/login')
+def login():
+    '''login on system'''
+    data = request.json
+    if not data or not data.get('username') or not data.get('password'): 
+        return 'did not receive username or password', 400 
+    
+    username = data['username']
+    password = data['password']
+
+    try:
+        token = auth_service.login(username, password)
+        return jsonify(token)
+    except AuthException as e:
+        return jsonify(str(e)), 400

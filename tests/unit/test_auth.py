@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError, NoResultFound
 import jwt
 
-from app.services.auth_service import AuthException, NotApproved
+from app.services.auth_service import AuthException
 
 def seed_db():
     mika = User(
@@ -21,14 +21,12 @@ def seed_db():
         {
             "username": "zika_test",
             "password": generate_password_hash("zikazika"),
-            "approved": True
         }
     )
     admin = User(
         {
             "username": "admin_test",
             "password": generate_password_hash("adminadmin"),
-            "approved": True
         }
     )
 
@@ -65,7 +63,6 @@ class TestSignup:
         created_user = auth_service.signup(incoming_data['username'], incoming_data['password'])
         assert incoming_data['username'] == created_user.username
         assert check_password_hash(created_user.password, incoming_data['password'])
-        assert created_user.approved == False
 
     @pytest.mark.parametrize('invalid_data', [{'username': 'pera'}, {'password': 'perapera'}, {}])
     def test_signup_with_invalid_data(self, app: Flask, invalid_data):
@@ -96,12 +93,6 @@ class TestClassLogin:
         decoded:dict =  jwt.decode(jwt=token, key=app.config['SECRET_KEY'], algorithms=['HS256'])
         assert decoded['username'] == incoming_data['username']
     
-
-    def test_login_while_not_approved(self, app: Flask):
-        incoming_data = {'username': 'mika_test', 'password': 'mikamika'}
-        with pytest.raises(NotApproved):
-            token = auth_service.login(incoming_data['username'], incoming_data['password'])
-
 
     def test_login_with_wrong_username(self, app: Flask):
         incoming_data = {'username': 'trash', 'password': 'mikamika'}

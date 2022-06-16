@@ -36,9 +36,6 @@ def check_token(f):
             return 'Problem with authentication.', 403
 
         response = f(*args, **kwargs)
-        if (type(response) == Response):
-            response.headers['User'] = user['username']
-            response.headers['Role'] = user['role']
         return response
 
     return wrap

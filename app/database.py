@@ -17,7 +17,7 @@ def add_or_update(instance: T) -> T:
     return ret
 
 
-def delete_instance(model, id):
+def delete_instance(model, id: int):
     model.query.filter_by(id=id).delete()
     commit_changes()
 

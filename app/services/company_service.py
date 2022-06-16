@@ -13,12 +13,20 @@ def create_company_registration(user: User, data: dict):
     except NotNullViolation:
         raise NotNullViolation('some fields are missing in request.')
 
-def resolve_company_registration(user: User, reject: bool):
-    '''Resolves company registration by the owner. Can reject or accept. If reject, request is deleted, is accept, request is approved.'''
+def resolve_company_registration(username: str, reject: bool):
+    '''Resolves company registration by the owner. Can reject or accept. 
+    If reject, request is deleted, is accept, request is approved.
+    Returns True if successfully deleted, returns company object otherwise.'''
+
+    user = database.find_by_username(username)
+    print(user, user.to_dict())
+
+    if not user:
+        raise NoResultFound(f"No user with given username: {user['username']}")
 
     if reject:
         database.delete_instance(Company, user.company.id)
-        return user.company
+        return True
 
     else:
         user.company.approved = True

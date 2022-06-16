@@ -3,9 +3,10 @@ from flask import Flask
 from app import create_app, db
 from app import database
 from app.services import company_service
-from app.models import User, Company
+from app.models import User, Company, UserRole
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError, NoResultFound
+
 
 
 def seed_db():
@@ -87,6 +88,7 @@ def app() -> Flask:
 def mika() -> User:
     return database.find_by_username("mika_test")
 
+
 @pytest.fixture(scope="function")
 def valid_co_data():
     return {
@@ -141,3 +143,21 @@ class TestCompany:
         assert True
     
 
+    def test_reject_company_registration(self, app: Flask, mika: User):
+        '''when registration is rejected, company obj should be deleted.'''
+        num_of_co_before_reject = len(database.get_all(Company))
+        res = company_service.resolve_company_registration(username='mika_test', reject=True)
+        assert res == True
+        assert mika.company == None
+        
+        num_of_co_after_reject = len(database.get_all(Company))
+        assert num_of_co_before_reject == num_of_co_after_reject + 1
+
+    
+    def test_accept_company_registration(self, app: Flask, mika: User):
+        '''when registration is accepted, company obj should be approved and user should become company owner.'''
+        assert mika.role == UserRole.user
+        company = company_service.resolve_company_registration(username='mika_test', reject=False)
+        assert company != None
+        assert mika.company == company
+        assert mika.role == UserRole.company_owner

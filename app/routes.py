@@ -52,20 +52,23 @@ def login():
         return jsonify(str(e)), 400
 
 
-@api.put('/company/resolve-registration')
+@api.post('/company/resolve-registration')
 @check_token
+@required_roles(['admin'])
 def resolve_company_registration():
-    # TODO: ADMIN ODOBRAVA ILI ODBIJA REGISTRACIJU za kompaniju
+    '''Only admin role can resolve registration request.'''
+
     data = request.json
-    if not data or not data.get('reject'):
-        return 'did not receive reject status.', 400
+    if not data or data.get('reject') == None or data.get('username') == None:
+        return 'did not receive reject status or username.', 400
     
-    user = get_logged_in_user(request)
-    reject = data.get('reject')
-    user = auth_service.resolve_company_registration(user, reject)
-    if not user:
-        return 'user already approved.'
-    pass
+    company = company_service.resolve_company_registration(username=data.get('username'),
+                                                            reject=data.get('reject'))
+    if company == True:
+        return 'successfully deleted.', 200
+    
+    return jsonify(company.to_dict())
+
 
 @api.post('/company')
 @check_token

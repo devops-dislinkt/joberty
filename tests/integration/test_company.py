@@ -32,40 +32,11 @@ admin = User(
     }
 )
 
-co1 = Company({
-    'approved': False,
-    'name': 'co1',
-    'email': 'contact@co1.com',
-    'location': 'ulica 1, Neki Grad',
-    'website': 'website.co1.com',
-    'description': 'best company ever'
-})
-
-co2 = Company({
-    'approved': False,
-    'name': 'co2',
-    'email': 'contact@co2.com',
-    'location': 'ulica 2, Neki Grad',
-    'website': 'website.co2.com',
-    'description': 'best company ever'
-})
-co3 = Company({
-    'approved': False,
-    'name': 'co3',
-    'email': 'contact@co3.com',
-    'location': 'ulica 2, Neki Grad',
-    'website': 'website.co3.com',
-    'description': 'best company ever'
-})
-
-
 def seed_db():
 
-    companies = [co1, co2, co3]
     users = [mika, zika, admin]
 
     db.session.bulk_save_objects(users)
-    db.session.bulk_save_objects(companies)
     db.session.commit()
 
 
@@ -82,6 +53,7 @@ def client() -> FlaskClient:
         db.drop_all()
         db.create_all()
         seed_db()
+        
 
     with app.test_client() as client:
         yield client
@@ -122,7 +94,6 @@ class TestCompany:
                         key='secret',
                         algorithm='HS256')
 
-        print(token)
         headers = {'authorization': f'Bearer {token}'}
         return headers
 
@@ -148,4 +119,33 @@ class TestCompany:
         '''Request should fail if invalid data.'''
         response = client.post('/api/company', json=invalid_co_data, headers=self.get_headers_valid(mika))
         assert response.status_code == 400
+
+
+    def test_reject_company_registration(self, client: FlaskClient):
+        '''Only admin can resolve company registration. When admin rejects, company is deleted.'''
+        incoming_data = {'reject': True, 'username': mika.username}
+        response = client.post('/api/company/resolve-registration', json=incoming_data, headers=self.get_headers_valid(admin))
+        print(response.data)
+        assert response.status_code == 200
+
     
+    def test_accept_company_registration(self, client: FlaskClient, valid_co_data:dict):
+        '''Only admin can resolve company registration. When admin accepts, company is approved and user becomes the owner.'''
+        # make request first
+        req_res = client.post('/api/company', json=valid_co_data, headers=self.get_headers_valid(zika))
+        
+        incoming_data = {'reject': False, 'username': zika.username}
+        response = client.post('/api/company/resolve-registration', json=incoming_data, headers=self.get_headers_valid(admin))
+        assert response.status_code == 200
+        assert response.json['approved'] == True
+        assert response.json['user']['company']['id'] == req_res.json['id']
+        assert response.json['user']['role'] == UserRole.company_owner.value
+
+    def test_accept_company_registration_with_wrong_role(self, client: FlaskClient, valid_co_data:dict):
+        '''Only admin can resolve company registration. When admin accepts, company is approved and user becomes the owner.'''
+        # make request first
+        req_res = client.post('/api/company', json=valid_co_data, headers=self.get_headers_valid(zika))
+        
+        incoming_data = {'reject': False, 'username': zika.username}
+        response = client.post('/api/company/resolve-registration', json=incoming_data, headers=self.get_headers_valid(zika))
+        assert response.status_code == 403

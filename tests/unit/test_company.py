@@ -1,0 +1,143 @@
+import pytest
+from flask import Flask
+from app import create_app, db
+from app import database
+from app.services import company_service
+from app.models import User, Company
+from werkzeug.security import generate_password_hash
+from sqlalchemy.exc import IntegrityError, NoResultFound
+
+
+def seed_db():
+    mika = User(
+        {
+            "username": "mika_test",
+            "password": generate_password_hash("mikamika")
+        }
+    )
+    zika = User(
+        {
+            "username": "zika_test",
+            "password": generate_password_hash("zikazika"),
+        }
+    )
+    admin = User(
+        {
+            "username": "admin_test",
+            "password": generate_password_hash("adminadmin"),
+        }
+    )
+
+    co1 = Company({
+        'approved': False,
+        'name': 'co1',
+        'email': 'contact@co1.com',
+        'location': 'ulica 1, Neki Grad',
+        'website': 'website.co1.com',
+        'description': 'best company ever'
+    })
+
+    co2 = Company({
+        'approved': False,
+        'name': 'co2',
+        'email': 'contact@co2.com',
+        'location': 'ulica 2, Neki Grad',
+        'website': 'website.co2.com',
+        'description': 'best company ever'
+    })
+    co3 = Company({
+        'approved': False,
+        'name': 'co3',
+        'email': 'contact@co3.com',
+        'location': 'ulica 2, Neki Grad',
+        'website': 'website.co3.com',
+        'description': 'best company ever'
+    })
+
+    companies = [co1, co2, co3]
+    users = [mika, zika, admin]
+
+    db.session.bulk_save_objects(users)
+    db.session.bulk_save_objects(companies)
+    db.session.commit()
+
+
+@pytest.fixture
+def app() -> Flask:
+    '''
+    Initializa flask client app which is used for unit testing with app context.
+    Returns Flask app.
+    '''
+
+    # setup
+    app = create_app()
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        seed_db()
+        yield app
+
+    # teardown
+    with app.app_context():
+        db.drop_all()
+
+
+# PARAMS
+@pytest.fixture(scope="function")
+def mika() -> User:
+    return database.find_by_username("mika_test")
+
+@pytest.fixture(scope="function")
+def valid_co_data():
+    return {
+        'approved': False,
+        'name': 'co4',
+        'email': 'contact@co4.com',
+        'location': 'ulica 4, Neki Grad',
+        'website': 'website.co4.com',
+        'description': 'best company ever'
+    }
+
+@pytest.fixture(scope="function")
+def invalid_co_data():
+    return {
+        'approved': False,
+        'name': 'co4',
+        'email': 'contact@co4.com',
+        'location': 'ulica 4, Neki Grad',
+        'trash': 'trash'
+    }
+
+
+class TestCompany:
+    '''Test case for unit tests for company.'''
+    
+    def test_create_company_request_success(self, app: Flask, mika: User, valid_co_data:dict):
+        company = company_service.create_company_registration(user=mika, data=valid_co_data)
+        assert valid_co_data['name'] == company.name
+        assert valid_co_data['approved'] == company.approved
+        assert valid_co_data['email'] == company.email
+        assert valid_co_data['location'] == company.location
+        assert valid_co_data['website'] == company.website
+        assert valid_co_data['description'] == company.description
+
+
+    def test_create_company_request_with_approved_set_to_true(self, app: Flask, mika: User, valid_co_data:dict):
+        valid_co_data['approved'] == True
+        company = company_service.create_company_registration(user=mika, data=valid_co_data)
+        assert mika.company.id == company.id
+        assert valid_co_data['name'] == company.name
+        assert valid_co_data['approved'] == company.approved
+        assert valid_co_data['email'] == company.email
+        assert valid_co_data['location'] == company.location
+        assert valid_co_data['website'] == company.website
+        assert valid_co_data['description'] == company.description
+
+
+    def test_create_company_request_invalid_data(self, app: Flask, mika: User, invalid_co_data:dict):
+        '''all fields are neccessary.'''
+        with pytest.raises(IntegrityError):
+            company_service.create_company_registration(user=mika, data=invalid_co_data)
+        assert True
+    
+

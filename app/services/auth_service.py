@@ -12,11 +12,6 @@ class AuthException(Exception):
     def __init__(self, message):            
         super().__init__(message)
 
-class NotApproved(Exception):
-    '''When company registration is not approved by admin.'''
-    def __init__(self, message):            
-        super().__init__(message)
-
 
 def signup(username: str, password: str):
     '''creates new user with given username and password. '''
@@ -37,12 +32,10 @@ def login(username: str, password: str):
     is_password_correct = check_password_hash(user.password, password)
     if not is_password_correct:
         raise AuthException('wrong password provided')
-
-    
-
     
     token = jwt.encode({'username': user.username, 'role': user.role.name, 'exp': datetime.utcnow() + timedelta(minutes=30)},
                         current_app.config['SECRET_KEY'],
                         algorithm='HS256')
     
     return token
+

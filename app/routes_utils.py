@@ -1,25 +1,32 @@
 from functools import wraps
-from flask import jsonify, request, current_app, Response
+from flask import jsonify, request, current_app, Response, Request
 from functools import wraps
 import jwt
-
 from app import database
 from app.models import User
 from .routes import api
 from sqlalchemy.exc import NoResultFound
 
+
+def get_logged_in_user(request: Request):
+    '''Verifies token. If user from provided token exists, returns user.'''
+    
+    token = request.headers['authorization'].split(' ')[1]
+    user:dict | None | User = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+    found_user = database.find_by_username(user['username']) # find user with username
+    if not user:
+        raise NoResultFound(f"No user with given username: {user['username']}")
+    return found_user
+
+
 def check_token(f):
     @wraps(f)
     def wrap(*args, **kwargs):
         if not request.headers.get('authorization'): 
-            return {'message': 'No token provided'}, 403
-    
+            return jsonify('no token provided'), 403
         try:
             # verify token
-            token = request.headers['authorization'].split(' ')[1]
-            user = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-            found_user = database.find_by_username(user['username'])
-            if not found_user: return f'not found user with username: {user["username"]}', 400
+            user = get_logged_in_user(request)
 
         except jwt.ExpiredSignatureError:
             return 'Signature expired. Please log in again.', 403
@@ -43,15 +50,10 @@ def required_roles(roles: list[str]):
         def wrap(*args, **kwargs):
             try:
                 # verify token
-                token = request.headers['authorization'].split(' ')[1]
-                user:dict | None | User = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-                
-                 # find user with username
-                found_user = database.find_by_username(user['username'])
-                if not found_user: return f'not found user with username: {user["username"]}', 403
+                found_user = get_logged_in_user(request)
 
                 if found_user.role not in roles: 
-                    return f'provided role: {user.role}. Accepted roles: {roles}', 403
+                    return f'provided role: {found_user.role}. Accepted roles: {roles}', 403
                     
             except:
                 return 'Problem with auth.', 403

@@ -1,15 +1,17 @@
-from typing import Optional
+from typing import Optional, TypeVar
 from .models import User, db
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 
+T = TypeVar('T')
 
-def get_all(model):
+
+def get_all(model: T) -> list[T]:
     data = model.query.all()
     return data
 
 
-def add_or_update(instance: db.Model):
+def add_or_update(instance: T) -> T:
     ret = db.session.merge(instance)
     commit_changes()
     return ret
@@ -42,3 +44,4 @@ def commit_changes():
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(e)
+        raise e

@@ -1,21 +1,23 @@
-from typing import Optional
+from typing import Optional, TypeVar
 from .models import User, db
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 
+T = TypeVar('T')
 
-def get_all(model):
+
+def get_all(model: T) -> list[T]:
     data = model.query.all()
     return data
 
 
-def add_or_update(instance: db.Model):
+def add_or_update(instance: T) -> T:
     ret = db.session.merge(instance)
     commit_changes()
     return ret
 
 
-def delete_instance(model, id):
+def delete_instance(model, id: int):
     model.query.filter_by(id=id).delete()
     commit_changes()
 
@@ -32,7 +34,7 @@ def find_by_username(username: str) -> Optional[User]:
     return User.query.filter_by(username=username).first()
 
 
-def find_by_id(model, id):
+def find_by_id(model: T, id) -> T:
     return model.query.get(id)
 
 
@@ -42,3 +44,4 @@ def commit_changes():
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(e)
+        raise e

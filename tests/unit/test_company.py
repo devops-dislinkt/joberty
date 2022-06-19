@@ -6,6 +6,7 @@ from app.services import company_service
 from app.models import User, Company, UserRole
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError, NoResultFound
+from app.services.company_service import NotApproved
 
 
 
@@ -13,19 +14,22 @@ def seed_db():
     mika = User(
         {
             "username": "mika_test",
-            "password": generate_password_hash("mikamika")
+            "password": generate_password_hash("mikamika"),
+            "role": UserRole.user
         }
     )
     zika = User(
         {
             "username": "zika_test",
             "password": generate_password_hash("zikazika"),
+            "role": UserRole.company_owner
         }
     )
     admin = User(
         {
             "username": "admin_test",
             "password": generate_password_hash("adminadmin"),
+            "role": UserRole.admin
         }
     )
 
@@ -36,7 +40,7 @@ def seed_db():
         'location': 'ulica 1, Neki Grad',
         'website': 'website.co1.com',
         'description': 'best company ever',
-        'user_id': 1
+        'user_id': 1 # mika has co1 but not approved
     })
 
     co2 = Company({
@@ -53,7 +57,8 @@ def seed_db():
         'email': 'contact@co3.com',
         'location': 'ulica 2, Neki Grad',
         'website': 'website.co3.com',
-        'description': 'best company ever'
+        'description': 'best company ever',
+        'user_id': 2 # zika has co3 and it's approved
     })
 
     companies = [co1, co2, co3]
@@ -89,6 +94,9 @@ def app() -> Flask:
 def mika() -> User:
     return database.find_by_username("mika_test")
 
+@pytest.fixture(scope="function")
+def zika() -> User:
+    return database.find_by_username("zika_test")
 
 @pytest.fixture(scope="function")
 def valid_co_data():
@@ -178,3 +186,36 @@ class TestCompany:
         '''Should return all companies'''
         companies = company_service.get_all_companies('not-resolved')
         assert len(companies) == 2
+
+    def test_create_comment_success(self, app: Flask, mika: User, zika: User):
+        '''Comment can create user (mika) for company that's approved (company owned by zika).'''
+        description = 'My name is Giovani Giorgio and I love woriking for co1.'
+        company = zika.company # zika's company is approved
+        assert len(company.comments) == 0
+        comment = company_service.create_comment(user=mika, company_id=company.id, description=description)
+        assert len(company.comments) == 1
+        assert company.id == comment.company_id
+        assert mika.id == comment.user_id
+        assert description == comment.description
+    
+    def test_create_comment_for_non_existing_comapny(self, app: Flask, mika: User):
+        '''Comment cannot create for non existing company.'''
+        description = 'My name is Giovani Giorgio and I love woriking for co1.'
+        with pytest.raises(NoResultFound):
+            company_service.create_comment(user=mika, company_id=100, description=description)
+    
+    def test_create_comment_for_not_approved_company(self, app: Flask, mika: User):
+        '''Comment cannot create for not approved company.'''
+        description = 'My name is Giovani Giorgio and I love woriking for co1.'
+        company = mika.company
+        with pytest.raises(NotApproved):
+            company_service.create_comment(user=mika, company_id=company.id, description=description)
+    
+    
+    def test_create_comment_as_company_owner(self, app: Flask, zika: User):
+        '''Comment cannot create company owner.'''
+        description = 'My name is Giovani Giorgio and I love woriking for co1.'
+        company = zika.company
+        with pytest.raises(Exception):
+            company_service.create_comment(user=zika, company_id=company.id, description=description)
+        

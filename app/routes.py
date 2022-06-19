@@ -96,3 +96,24 @@ def get_company(type:str):
 
     companies = company_service.get_all_companies(type)
     return jsonify([company.to_dict() for company in companies])
+
+@api.post('/company/<int:company_id>/comment')
+@check_token
+@required_roles(['user'])
+def create_comment(company_id: int):
+    '''
+    Logged in user (ony as user role) creates comment for specified (only approved) company. 
+    Returns created comment.
+    '''
+    data = request.json
+    if not data or not data.get('description'):
+        return 'did not receive data.', 400
+    
+    user = get_logged_in_user(request)
+    try: 
+        comment = company_service.create_comment(user, company_id, data.get('description'))
+        return jsonify(comment.to_dict())
+    except NotApproved as e:
+        return jsonify(str(e)), 400
+    except Exception as e:
+        return jsonify(str(e)), 403

@@ -1,6 +1,6 @@
 from dataclasses import field
 from typing import Literal
-from app.models import User, Company, UserRole
+from app.models import User, Company, UserRole, Comment
 from app import database
 from sqlalchemy.exc import NoResultFound
 from psycopg2.errors import NotNullViolation
@@ -47,6 +47,23 @@ def get_all_companies(type: Literal['approved', 'all', 'not-resolved']):
         case 'not-resolved':
             return [co for co in companies if co.approved == False]
     
+
+def create_comment(user: User, company_id: int, description: str):
+    company = database.find_by_id(Company, id=company_id)
+    if not company:
+        raise NoResultFound(f'no company with id: {company_id}')
+    if not company.approved:
+        raise NotApproved('company registration not approved by admin')
+    if user.role != UserRole.user:
+        raise Exception('must login as user')
+    
+
+    comment = Comment({'company_id': company_id, 'description': description, 'user_id': user.id})
+    try: 
+        return database.add_or_update(comment)
+    except NotNullViolation:
+        raise NotNullViolation('some fields are missing in request.')
+
 
 class NotApproved(Exception):
     '''When company registration is not approved by admin.'''

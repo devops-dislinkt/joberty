@@ -3,12 +3,14 @@ from flask import Blueprint, jsonify, request
 from app import database
 from app.models import User
 from app.services import auth_service
-from app.services.auth_service import AuthException, NotApproved
+from app.services import company_service
+from app.services.company_service import NotApproved
+from app.services.auth_service import AuthException 
 from sqlalchemy.exc import IntegrityError
 
 
 api = Blueprint('api', __name__)
-import app.routes_utils
+from app.routes_utils import check_token, required_roles, get_logged_in_user
 
 @api.get('/test')
 def test():
@@ -48,5 +50,49 @@ def login():
         return jsonify(token)
     except AuthException as e:
         return jsonify(str(e)), 400
-    except NotApproved as e:
-        return jsonify(str(e)), 403
+
+
+@api.post('/company/resolve-registration')
+@check_token
+@required_roles(['admin'])
+def resolve_company_registration():
+    '''Only admin role can resolve registration request.'''
+
+    data = request.json
+    if not data or data.get('reject') == None or data.get('username') == None:
+        return 'did not receive reject status or username.', 400
+    
+    company = company_service.resolve_company_registration(username=data.get('username'),
+                                                            reject=data.get('reject'))
+    if company == True:
+        return 'successfully deleted.', 200
+    
+    return jsonify(company.to_dict())
+
+
+@api.post('/company')
+@check_token
+def create_company_registration():
+    data = request.json
+    if not data:
+        return 'did not receive data.', 400
+
+    user = get_logged_in_user(request)    
+    try: 
+        company = company_service.create_company_registration(user, data)
+        return jsonify(company.to_dict())
+
+    except IntegrityError as e:
+        return jsonify(str(e)), 400
+
+
+@api.get('/company/<string:type>')
+@check_token
+@required_roles(['admin'])
+def get_company(type:str):
+    '''Returns all/approved/not-resolved companies. Type param can be: all, appproved or not-resolved.'''
+    if not type:
+        return 'did not receive data.', 400
+
+    companies = company_service.get_all_companies(type)
+    return jsonify([company.to_dict() for company in companies])

@@ -36,9 +36,6 @@ def check_token(f):
             return 'Problem with authentication.', 403
 
         response = f(*args, **kwargs)
-        if (type(response) == Response):
-            response.headers['User'] = user['username']
-            response.headers['Role'] = user['role']
         return response
 
     return wrap
@@ -52,8 +49,8 @@ def required_roles(roles: list[str]):
                 # verify token
                 found_user = get_logged_in_user(request)
 
-                if found_user.role not in roles: 
-                    return f'provided role: {found_user.role}. Accepted roles: {roles}', 403
+                if found_user.role.name not in roles: 
+                    return f'provided role: {found_user.role.name}. Accepted roles: {roles}', 403
                     
             except:
                 return 'Problem with auth.', 403

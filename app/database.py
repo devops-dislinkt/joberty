@@ -17,7 +17,7 @@ def add_or_update(instance: T) -> T:
     return ret
 
 
-def delete_instance(model, id):
+def delete_instance(model, id: int):
     model.query.filter_by(id=id).delete()
     commit_changes()
 
@@ -34,7 +34,7 @@ def find_by_username(username: str) -> Optional[User]:
     return User.query.filter_by(username=username).first()
 
 
-def find_by_id(model, id):
+def find_by_id(model: T, id) -> T:
     return model.query.get(id)
 
 

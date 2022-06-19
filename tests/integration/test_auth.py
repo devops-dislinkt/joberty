@@ -62,26 +62,6 @@ def client() -> FlaskClient:
         db.drop_all()
 
 
-# PARAMS
-@pytest.fixture(scope="function")
-def pera() -> User:
-    return database.find_by_username("pera_test")
-
-
-@pytest.fixture(scope="function")
-def mika() -> User:
-    return database.find_by_username("mika_test")
-
-
-@pytest.fixture(scope="function")
-def zika() -> User:
-    return database.find_by_username("zika_test")
-
-
-@pytest.fixture(scope="function")
-def kiki() -> User:
-    return database.find_by_username("kiki_test")
-
 
 class TestSignup:
     '''Test case for integration tests for signup.'''

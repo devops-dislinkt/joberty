@@ -169,3 +169,28 @@ class TestCompany:
         response = client.get('/api/company/not-resolved', headers=self.get_headers_valid(admin))
         assert response.status_code == 200
         assert 1 == len(response.json)
+
+    def test_create_comment_success(self, client: FlaskClient):
+        '''Zika's company co4 is approved. For that company user mika can create comment.'''
+        description = 'My name is Giovani Giorgio and I love woriking for co4.'
+        company_id = 3
+        response = client.post(f'/api/company/{company_id}/comment', json={'description': description}, headers=self.get_headers_valid(mika))
+        assert response.status_code == 200
+        assert description == response.json['description']
+        assert mika.id == response.json['user_id']
+        
+    def test_create_comment_for_not_approved_company(self, client: FlaskClient):
+        '''Comment cannot create for not approved company.'''
+        description = 'My name is Giovani Giorgio and I love woriking for co4.'
+        company_id = 4
+        response = client.post(f'/api/company/{company_id}/comment', json={'description': description}, headers=self.get_headers_valid(mika))
+        print(response.json)
+        assert response.status_code == 400
+        
+    def test_create_comment_as_company_owner(self, client: FlaskClient):
+        '''Comment cannot create company owner.'''
+        description = 'My name is Giovani Giorgio and I love woriking for co4.'
+        company_id = 3
+        response = client.post(f'/api/company/{company_id}/comment', json={'description': description}, headers=self.get_headers_valid(zika))
+        assert response.status_code == 403
+        

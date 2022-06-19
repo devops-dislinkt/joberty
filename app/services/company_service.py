@@ -1,4 +1,5 @@
 from dataclasses import field
+from typing import Literal
 from app.models import User, Company, UserRole
 from app import database
 from sqlalchemy.exc import NoResultFound
@@ -34,6 +35,18 @@ def resolve_company_registration(username: str, reject: bool):
         user = database.add_or_update(user)
         return user.company
 
+
+def get_all_companies(type: Literal['approved', 'all', 'not-resolved']):
+    companies = database.get_all(Company)
+
+    match type:
+        case 'all':
+            return companies
+        case 'approved':
+            return [co for co in companies if co.approved == True]
+        case 'not-resolved':
+            return [co for co in companies if co.approved == False]
+    
 
 class NotApproved(Exception):
     '''When company registration is not approved by admin.'''

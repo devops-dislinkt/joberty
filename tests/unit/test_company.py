@@ -48,7 +48,7 @@ def seed_db():
         'description': 'best company ever'
     })
     co3 = Company({
-        'approved': False,
+        'approved': True,
         'name': 'co3',
         'email': 'contact@co3.com',
         'location': 'ulica 2, Neki Grad',
@@ -162,3 +162,19 @@ class TestCompany:
         assert company != None
         assert mika.company == company
         assert mika.role == UserRole.company_owner
+
+    def test_get_all_companies(self, app: Flask):
+        '''Should return all companies'''
+        companies = company_service.get_all_companies('all')
+        assert len(companies) == 3
+    
+    def test_get_all_approved_companies(self, app: Flask):
+        '''Should return all companies'''
+        companies = company_service.get_all_companies('approved')
+        assert len(companies) == 1
+
+    
+    def test_get_all_not_resolved_companies(self, app: Flask):
+        '''Should return all companies'''
+        companies = company_service.get_all_companies('not-resolved')
+        assert len(companies) == 2

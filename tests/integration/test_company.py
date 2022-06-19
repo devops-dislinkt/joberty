@@ -148,3 +148,24 @@ class TestCompany:
         incoming_data = {'reject': False, 'username': zika.username}
         response = client.post('/api/company/resolve-registration', json=incoming_data, headers=self.get_headers_valid(zika))
         assert response.status_code == 403
+
+    
+    def test_get_all_companies(self, client: FlaskClient):
+        '''Should return all companies'''
+        response = client.get('/api/company/all', headers=self.get_headers_valid(admin))
+        assert response.status_code == 200
+        assert 2 == len(response.json)
+
+    
+    def test_get_all_approved_companies(self, client: FlaskClient):
+        '''Should return all companies'''
+        response = client.get('/api/company/approved', headers=self.get_headers_valid(admin))
+        assert response.status_code == 200
+        assert 1 == len(response.json)
+
+    
+    def test_get_all_not_resolved_companies(self, client: FlaskClient):
+        '''Should return all companies'''
+        response = client.get('/api/company/not-resolved', headers=self.get_headers_valid(admin))
+        assert response.status_code == 200
+        assert 1 == len(response.json)

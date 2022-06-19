@@ -84,4 +84,15 @@ def create_company_registration():
 
     except IntegrityError as e:
         return jsonify(str(e)), 400
-    
+
+
+@api.get('/company/<string:type>')
+@check_token
+@required_roles(['admin'])
+def get_company(type:str):
+    '''Returns all/approved/not-resolved companies. Type param can be: all, appproved or not-resolved.'''
+    if not type:
+        return 'did not receive data.', 400
+
+    companies = company_service.get_all_companies(type)
+    return jsonify([company.to_dict() for company in companies])

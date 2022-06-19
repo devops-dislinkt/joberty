@@ -125,7 +125,6 @@ class TestCompany:
         '''Only admin can resolve company registration. When admin rejects, company is deleted.'''
         incoming_data = {'reject': True, 'username': mika.username}
         response = client.post('/api/company/resolve-registration', json=incoming_data, headers=self.get_headers_valid(admin))
-        print(response.data)
         assert response.status_code == 200
 
     

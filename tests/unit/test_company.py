@@ -29,37 +29,9 @@ def seed_db():
         }
     )
 
-    co1 = Company({
-        'approved': False,
-        'name': 'co1',
-        'email': 'contact@co1.com',
-        'location': 'ulica 1, Neki Grad',
-        'website': 'website.co1.com',
-        'description': 'best company ever'
-    })
-
-    co2 = Company({
-        'approved': False,
-        'name': 'co2',
-        'email': 'contact@co2.com',
-        'location': 'ulica 2, Neki Grad',
-        'website': 'website.co2.com',
-        'description': 'best company ever'
-    })
-    co3 = Company({
-        'approved': False,
-        'name': 'co3',
-        'email': 'contact@co3.com',
-        'location': 'ulica 2, Neki Grad',
-        'website': 'website.co3.com',
-        'description': 'best company ever'
-    })
-
-    companies = [co1, co2, co3]
     users = [mika, zika, admin]
 
     db.session.bulk_save_objects(users)
-    db.session.bulk_save_objects(companies)
     db.session.commit()
 
 
@@ -122,6 +94,7 @@ class TestCompany:
         assert valid_co_data['location'] == company.location
         assert valid_co_data['website'] == company.website
         assert valid_co_data['description'] == company.description
+        assert mika.company.name == company.name
 
 
     def test_create_company_request_with_approved_set_to_true(self, app: Flask, mika: User, valid_co_data:dict):
@@ -143,8 +116,9 @@ class TestCompany:
         assert True
     
 
-    def test_reject_company_registration(self, app: Flask, mika: User):
+    def test_reject_company_registration(self, app: Flask, mika: User, valid_co_data:dict):
         '''when registration is rejected, company obj should be deleted.'''
+        company_service.create_company_registration(user=mika, data=valid_co_data)
         num_of_co_before_reject = len(database.get_all(Company))
         res = company_service.resolve_company_registration(username='mika_test', reject=True)
         assert res == True
@@ -154,8 +128,9 @@ class TestCompany:
         assert num_of_co_before_reject == num_of_co_after_reject + 1
 
     
-    def test_accept_company_registration(self, app: Flask, mika: User):
+    def test_accept_company_registration(self, app: Flask, mika: User, valid_co_data:dict):
         '''when registration is accepted, company obj should be approved and user should become company owner.'''
+        company_service.create_company_registration(user=mika, data=valid_co_data)
         assert mika.role == UserRole.user
         company = company_service.resolve_company_registration(username='mika_test', reject=False)
         assert company != None

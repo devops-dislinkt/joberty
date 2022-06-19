@@ -1,6 +1,6 @@
 from dataclasses import field
 from typing import Literal
-from app.models import User, Company, UserRole, Comment
+from app.models import User, Company, UserRole, Comment, Grade
 from app import database
 from sqlalchemy.exc import NoResultFound
 from psycopg2.errors import NotNullViolation
@@ -57,12 +57,24 @@ def create_comment(user: User, company_id: int, description: str):
     if user.role != UserRole.user:
         raise Exception('must login as user')
     
-
     comment = Comment({'company_id': company_id, 'description': description, 'user_id': user.id})
-    try: 
-        return database.add_or_update(comment)
-    except NotNullViolation:
-        raise NotNullViolation('some fields are missing in request.')
+    return database.add_or_update(comment)
+
+
+def add_grade(user: User, company_id: int, grade: int):
+    company = database.find_by_id(Company, id=company_id)
+    if not company:
+        raise NoResultFound(f'no company with id: {company_id}')
+    if not company.approved:
+        raise NotApproved('company registration not approved by admin')
+    if user.role != UserRole.user:
+        raise Exception('must login as user')
+
+    if grade < 1 or grade > 5:
+        raise Exception('grade must be in range [1,5].')
+
+    grade = Grade({'company_id': company_id, 'grade': grade, 'user_id': user.id})
+    return database.add_or_update(grade)
 
 
 class NotApproved(Exception):

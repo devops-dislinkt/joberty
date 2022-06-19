@@ -1,3 +1,4 @@
+from email import header
 import pytest
 from flask import current_app
 from flask.testing import FlaskClient
@@ -194,3 +195,24 @@ class TestCompany:
         response = client.post(f'/api/company/{company_id}/comment', json={'description': description}, headers=self.get_headers_valid(zika))
         assert response.status_code == 403
         
+    def test_add_grade(self, client: FlaskClient):
+        '''Zika's company co4 is approved. For that company user mika can add grade.'''
+        grade = 5;
+        company_id = 3
+        response = client.post(f'/api/company/{company_id}/grade', json={'grade': grade}, headers=self.get_headers_valid(mika))
+        assert response.status_code == 200
+        assert grade == response.json['grade']
+
+    def test_add_grade_wrong_grade(self, client: FlaskClient):
+        '''Zika's company co4 is approved. For that company user mika can add grade.'''
+        grade = 100;
+        company_id = 3
+        response = client.post(f'/api/company/{company_id}/grade', json={'grade': grade}, headers=self.get_headers_valid(mika))
+        print(response.json)
+        assert response.status_code == 400
+        
+    def test_get_company_success(self, client: FlaskClient):
+        company_id = 3
+        response = client.get(f'/api/company/{company_id}', headers=self.get_headers_valid(mika))
+        assert response.status_code == 200
+        assert len(response.json['grades']) == 1

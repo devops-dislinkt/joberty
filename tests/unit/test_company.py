@@ -219,3 +219,20 @@ class TestCompany:
         with pytest.raises(Exception):
             company_service.create_comment(user=zika, company_id=company.id, description=description)
         
+
+    def test_grade_company_success(self, app: Flask, mika: User, zika: User):
+        '''Grade can add user (mika) for company that's approved (company owned by zika).'''
+        grade = 5;
+        company = zika.company
+        ret_grade = company_service.add_grade(user=mika, company_id=company.id, grade=grade)
+        assert grade == ret_grade.grade
+        assert ret_grade.company_id == zika.company.id
+        assert mika.id == ret_grade.user_id
+    
+    def test_grade_company_wrong_grade(self, app: Flask, mika: User, zika: User):
+        '''Grade can add user (mika) for company that's approved (company owned by zika).'''
+        grade = 1000;
+        company = zika.company
+        with pytest.raises(Exception):
+            company_service.add_grade(user=mika, company_id=company.id, grade=grade)
+            

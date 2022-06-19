@@ -12,6 +12,18 @@ class UserRole(enum.Enum):
     def __str__(self):
         return str(self.value)
 
+
+class Grade(db.Model, SerializerMixin):
+    id:int = db.Column(db.Integer, primary_key=True)
+    company_id:int = db.Column(db.Integer, db.ForeignKey('company.id'))
+    user_id: int =  db.Column(db.Integer, db.ForeignKey('user.id'))
+    grade: int = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, fields: dict) -> None:
+    # merge dictionaries
+        self.__dict__ = {**self.__dict__, **fields}
+
+
 class Comment(db.Model, SerializerMixin):
 
     id:int = db.Column(db.Integer, primary_key=True)
@@ -23,8 +35,10 @@ class Comment(db.Model, SerializerMixin):
     # merge dictionaries
         self.__dict__ = {**self.__dict__, **fields}
 
+
 class Company(db.Model, SerializerMixin):
-    serialize_rules = ("-comments.company",)
+    serialize_rules = ("-comments.company", "-grades.company")
+
     id:int = db.Column(db.Integer, primary_key=True)
     user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
     approved: bool = db.Column(db.Boolean, default=False) # approval for company registration
@@ -34,6 +48,7 @@ class Company(db.Model, SerializerMixin):
     website: str = db.Column(db.String(120), nullable=False)
     description: str = db.Column(db.String(120), nullable=False)
     comments: list[Comment] = db.relationship('Comment', backref='company')
+    grades: list[Grade] = db.relationship('Grade', backref='company')
 
     def __init__(self, fields: dict) -> None:
     # merge dictionaries

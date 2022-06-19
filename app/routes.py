@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from app import database
-from app.models import User
+from app.models import User, Company
 from app.services import auth_service
 from app.services import company_service
 from app.services.company_service import NotApproved
@@ -89,13 +89,22 @@ def create_company_registration():
 @api.get('/company/<string:type>')
 @check_token
 @required_roles(['admin'])
-def get_company(type:str):
+def get_companies(type:str):
     '''Returns all/approved/not-resolved companies. Type param can be: all, appproved or not-resolved.'''
     if not type:
         return 'did not receive data.', 400
 
     companies = company_service.get_all_companies(type)
     return jsonify([company.to_dict() for company in companies])
+
+
+@api.get('/company/<int:company_id>')
+@check_token
+def get_company(company_id: int):
+    '''Get one company.'''
+    company = database.find_by_id(Company, company_id)
+    return jsonify(company.to_dict())
+
 
 @api.post('/company/<int:company_id>/comment')
 @check_token
@@ -117,3 +126,23 @@ def create_comment(company_id: int):
         return jsonify(str(e)), 400
     except Exception as e:
         return jsonify(str(e)), 403
+
+
+@api.post('/company/<int:company_id>/grade')
+@check_token
+@required_roles(['user'])
+def add_grade(company_id: int):
+    '''
+    Logged in user (ony as user role) adds grade for specified (only approved) company. 
+    Returns created grade.
+    '''
+    data = request.json
+    if not data or not data.get('grade'):
+        return 'did not receive data.', 400
+    
+    user = get_logged_in_user(request)
+    try: 
+        grade = company_service.add_grade(user, company_id, data.get('grade'))
+        return jsonify(grade.to_dict())
+    except Exception as e:
+        return jsonify(str(e)), 400

@@ -51,6 +51,7 @@ def get_jobs():
     jobs = company_service.get_all_jobs()
     return jsonify([c.to_dict() for c in jobs])
 
+
 @api.get('/companies')
 def get_companies():
     companies = company_service.get_all_companies('all')
@@ -205,6 +206,12 @@ def create_salary(company_id: int):
     user = get_logged_in_user(request)
     try: 
         comment = company_service.create_salary(user, company_id, data)
+        return 'did not receive data.', 400
+    print(f"comment data = {data}")
+    
+    user = get_logged_in_user(request)
+    try: 
+        comment = company_service.create_comment(user, company_id, data)
         return jsonify(comment.to_dict())
     except NotApproved as e:
         return jsonify(str(e)), 400
@@ -228,8 +235,4 @@ def create_job(company_id: int):
     user = get_logged_in_user(request)
     try: 
         comment = company_service.create_job(user, company_id, data)
-        return jsonify(comment.to_dict())
-    except NotApproved as e:
-        return jsonify(str(e)), 400
-    except Exception as e:
-        return jsonify(str(e)), 403
+

@@ -1,6 +1,7 @@
 from dataclasses import field
 from typing import Literal
 from app.models import Job, Salary, User, Company, UserRole, Comment, Interview
+
 from app import database
 from sqlalchemy.exc import NoResultFound
 from psycopg2.errors import NotNullViolation
@@ -75,6 +76,7 @@ def get_all_jobs():
     jobs = database.get_all(Job)
     return jobs
 
+
 def get_company_comments(id: int):
     comments = database.find_by_company_id(id)
     return comments
@@ -119,6 +121,7 @@ def create_interview_comment(user: User, company_id: int, data):
     except NotNullViolation:
         raise NotNullViolation('some fields are missing in request.')
 
+
 def create_salary(user: User, company_id: int, data):
     company = database.find_by_id(Company, id=company_id)
     if not company:
@@ -154,6 +157,7 @@ def create_job(user: User, company_id: int, data):
         return database.add_or_update(salary)
     except NotNullViolation:
         raise NotNullViolation('some fields are missing in request.')
+
 
 class NotApproved(Exception):
     '''When company registration is not approved by admin.'''

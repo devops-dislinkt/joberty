@@ -54,12 +54,14 @@ class Job(db.Model, SerializerMixin):
     title: str = db.Column(db.String(200), nullable=False)
     description: str = db.Column(db.String(200), nullable=False)
 
+
     def __init__(self, fields: dict) -> None:
     # merge dictionaries
         self.__dict__ = {**self.__dict__, **fields}
 
 class Company(db.Model, SerializerMixin):
     serialize_rules = ("-comments.company","-interview.company","-salary.company","-job.company",)
+
     id:int = db.Column(db.Integer, primary_key=True)
     user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
     approved: bool = db.Column(db.Boolean, default=False) # approval for company registration
@@ -73,6 +75,7 @@ class Company(db.Model, SerializerMixin):
     salary: list[Salary] = db.relationship('Salary', backref='company')
     job: list[Job] = db.relationship('Job', backref='company')
 
+
     def __init__(self, fields: dict) -> None:
     # merge dictionaries
         self.__dict__ = {**self.__dict__, **fields}
@@ -80,6 +83,7 @@ class Company(db.Model, SerializerMixin):
 
 class User(db.Model, SerializerMixin):
     serialize_rules = ("-company.user","-comments.user","-interview.user","-salary.user","-job.user")
+
     
     id:int = db.Column(db.Integer, primary_key=True)
     username:str = db.Column(db.String(80), unique=True, nullable=False)

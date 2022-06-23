@@ -12,6 +12,10 @@ class AuthException(Exception):
     def __init__(self, message):            
         super().__init__(message)
 
+def get_all_users():
+    users = database.get_all(User)
+    print(f"get users = {users}")
+    return users
 
 def signup(username: str, password: str):
     '''creates new user with given username and password. '''

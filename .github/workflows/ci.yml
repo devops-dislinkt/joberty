@@ -67,12 +67,12 @@ jobs:
     #----------------------------------------------
     #  check lint with black lib
     #----------------------------------------------
-      - name: Check lint with Black
-        uses: psf/black@stable
-        with:
-          options: "--check --verbose"
-          src: "."
-          version: "22.3.0"
+      # - name: Check lint with Black
+      #   uses: psf/black@stable
+      #   with:
+      #     options: "--check --verbose"
+      #     src: "."
+      #     version: "22.3.0"
     #----------------------------------------------
     #    get next version
     #----------------------------------------------

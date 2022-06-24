@@ -4,7 +4,7 @@ user = (
     os.environ["DATABASE_USERNAME"] if "DATABASE_USERNAME" in os.environ else "postgres"
 )
 password = (
-    os.environ["DATABASE_PASSWORD"] if "DATABASE_USERNAME" in os.environ else "postgres"
+    os.environ["DATABASE_PASSWORD"] if "DATABASE_USERNAME" in os.environ else "root"
 )
 host = os.environ["DATABASE_DOMAIN"] if "DATABASE_DOMAIN" in os.environ else "localhost"
 database = (

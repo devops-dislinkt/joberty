@@ -19,12 +19,16 @@ def get_all_users():
     print(f"get users = {users}")
     return users
 
+def get_user(username: str):
+    user = database.find_by_username(username)
+    return user
 
-def signup(username: str, password: str):
-    """creates new user with given username and password."""
-
+def signup(username: str, password: str, role: str):
+    '''creates new user with given username and password. '''
+    
     pass_hash = generate_password_hash(password)
-    user = User({"username": username, "password": pass_hash})
+    user = User({'username': username, 'password': pass_hash, 'role': role})
+
     return database.add_or_update(user)
 
 

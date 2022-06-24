@@ -75,18 +75,11 @@ class Job(db.Model, SerializerMixin):
 
 
 class Company(db.Model, SerializerMixin):
-    serialize_rules = (
-        "-comments.company",
-        "-interview.company",
-        "-salary.company",
-        "-job.company",
-    )
+    serialize_rules = ("-comments.company","-interview.company","-salary.company","-job.company",)
+    id:int = db.Column(db.Integer, primary_key=True)
+    user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
+    approved: bool = db.Column(db.Boolean, default=False) # approval for company registration
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    user_id: int = db.Column(db.Integer, db.ForeignKey("user.id"))
-    approved: bool = db.Column(
-        db.Boolean, default=False
-    )  # approval for company registration
     name: str = db.Column(db.String(120), nullable=False)
     email: str = db.Column(db.String(120), nullable=False)
     location: str = db.Column(db.String(120), nullable=False)
@@ -103,16 +96,11 @@ class Company(db.Model, SerializerMixin):
 
 
 class User(db.Model, SerializerMixin):
-    serialize_rules = (
-        "-company.user",
-        "-comments.user",
-        "-interview.user",
-        "-salary.user",
-        "-job.user",
-    )
+    serialize_rules = ("-company.user","-comments.user","-interview.user","-salary.user","-job.user")
+    
+    id:int = db.Column(db.Integer, primary_key=True)
+    username:str = db.Column(db.String(80), unique=True, nullable=False)
 
-    id: int = db.Column(db.Integer, primary_key=True)
-    username: str = db.Column(db.String(80), unique=True, nullable=False)
     password: str = db.Column(db.String(200), unique=False, nullable=False)
     role: UserRole = db.Column(db.Enum(UserRole), default=UserRole.user, nullable=True)
     company: Company = db.relationship(

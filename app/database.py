@@ -3,7 +3,7 @@ from .models import User, db
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def get_all(model: T) -> list[T]:

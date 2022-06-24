@@ -17,11 +17,28 @@ def create_company_registration(user: User, data: dict):
         raise NotNullViolation('some fields are missing in request.')
 
 
+def update_company(user: User, data: dict, company_id):
+    company = get_one_company(company_id)
+    company.name = data['name']
+    company.location = data['location']
+    company.website = data['website']
+    company.description = data['description']
+    company.email = data['email']
+    #company = Company(fields=data)
+    #user.company = company
+    print(f"update data = {data} \n user = {user.to_dict()}")
+    try:
+        return database.add_or_update(company)
+    except NotNullViolation:
+        raise NotNullViolation('some fields are missing in request.')
+
+
 def resolve_company_registration(username: str, reject: bool):
     '''Resolves company registration by the owner. Can reject or accept. 
     If reject, request is deleted, is accept, request is approved.
     Returns True if successfully deleted, returns company object otherwise.'''
 
+    print(f"resolve_company_registration {username} {reject}")
     user = database.find_by_username(username)
     print(user, user.to_dict())
 
@@ -84,8 +101,8 @@ def create_comment(user: User, company_id: int, data):
     company = database.find_by_id(Company, id=company_id)
     if not company:
         raise NoResultFound(f'no company with id: {company_id}')
-#    if not company.approved:
-#        raise NotApproved('company registration not approved by admin')
+    if not company.approved:
+        raise NotApproved('company registration not approved by admin')
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -104,8 +121,8 @@ def create_interview_comment(user: User, company_id: int, data):
     company = database.find_by_id(Company, id=company_id)
     if not company:
         raise NoResultFound(f'no company with id: {company_id}')
-#    if not company.approved:
-#        raise NotApproved('company registration not approved by admin')
+    if not company.approved:
+        raise NotApproved('company registration not approved by admin')
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -123,8 +140,8 @@ def create_salary(user: User, company_id: int, data):
     company = database.find_by_id(Company, id=company_id)
     if not company:
         raise NoResultFound(f'no company with id: {company_id}')
-#    if not company.approved:
-#        raise NotApproved('company registration not approved by admin')
+    if not company.approved:
+        raise NotApproved('company registration not approved by admin')
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -141,8 +158,8 @@ def create_job(user: User, company_id: int, data):
     company = database.find_by_id(Company, id=company_id)
     if not company:
         raise NoResultFound(f'no company with id: {company_id}')
-#    if not company.approved:
-#        raise NotApproved('company registration not approved by admin')
+    if not company.approved:
+        raise NotApproved('company registration not approved by admin')
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -154,6 +171,12 @@ def create_job(user: User, company_id: int, data):
         return database.add_or_update(salary)
     except NotNullViolation:
         raise NotNullViolation('some fields are missing in request.')
+
+
+def get_job_details(job_id: int):
+    job = database.find_by_id(Job, id=job_id)
+    print(f"get job details = {job}")
+    return job
 
 class NotApproved(Exception):
     '''When company registration is not approved by admin.'''

@@ -2,11 +2,11 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import Integer
 
 from app import database
-from app.models import User
+from app.models import User, Company
 from app.services import auth_service
 from app.services import company_service
 from app.services.company_service import NotApproved
-from app.services.auth_service import AuthException 
+from app.services.auth_service import AuthException
 from sqlalchemy.exc import IntegrityError
 
 from app import db
@@ -14,7 +14,8 @@ from app import db
 api = Blueprint('api', __name__)
 from app.routes_utils import check_token, required_roles, get_logged_in_user
 
-@api.get('/test')
+
+@api.get("/server/test")
 def test():
     #user = User(username='pera',password='pera', id=1)
     #database.add_or_update(user)
@@ -26,60 +27,60 @@ def test():
     db.create_all()
     return jsonify({})
 
-@api.get('/allusers')
+@api.get('/server/allusers')
 def get_users():
     users = auth_service.get_all_users()
     return jsonify([user.to_dict() for user in users])
 
-@api.get('/allcomments')
+@api.get('/server/allcomments')
 def get_comments():
     comments = company_service.get_all_comments()
     return jsonify([c.to_dict() for c in comments])
 
-@api.get('/allinterviewcomments')
+@api.get('/server/allinterviewcomments')
 def get_interview_comments():
     comments = company_service.get_all_interview()
     return jsonify([c.to_dict() for c in comments])
     
-@api.get('/allsalaries')
+@api.get('/server/allsalaries')
 def get_salaries():
     salaries = company_service.get_all_salaries()
     return jsonify([c.to_dict() for c in salaries])
 
-@api.get('/alljobs')
+@api.get('/server/alljobs')
 def get_jobs():
     jobs = company_service.get_all_jobs()
     return jsonify([c.to_dict() for c in jobs])
 
 
-@api.get('/companies')
+@api.get('/server/companies')
 def get_companies():
     companies = company_service.get_all_companies('all')
     return jsonify([c.to_dict() for c in companies])
 
-@api.post('/signup')
+@api.post('/server/signup')
 def signup():
-    '''Registers new user on the system'''
+    """Registers new user on the system"""
     data = request.json
-    if not data or not data.get('username') or not data.get('password'): 
-        return 'did not receive username or password', 400 
-    
+    if not data or not data.get("username") or not data.get("password"):
+        return "did not receive username or password", 400
+
     try:
-        user = auth_service.signup(data.get('username'), data.get('password'))
+        user = auth_service.signup(data.get("username"), data.get("password"))
         return jsonify(user.to_dict())
     except IntegrityError:
-        return 'username not unique', 400
+        return "username not unique", 400
 
 
-@api.post('/login')
+@api.post("/server/login")
 def login():
-    '''login on system'''
+    """login on system"""
     data = request.json
-    if not data or not data.get('username') or not data.get('password'): 
-        return 'did not receive username or password', 400 
-    
-    username = data['username']
-    password = data['password']
+    if not data or not data.get("username") or not data.get("password"):
+        return "did not receive username or password", 400
+
+    username = data["username"]
+    password = data["password"]
 
     try:
         token = auth_service.login(username, password)
@@ -88,40 +89,41 @@ def login():
         return jsonify(str(e)), 400
 
 
-@api.post('/company/resolve-registration')
+@api.post("/server/company/resolve-registration")
 @check_token
-@required_roles(['admin'])
+@required_roles(["admin"])
 def resolve_company_registration():
-    '''Only admin role can resolve registration request.'''
+    """Only admin role can resolve registration request."""
 
     data = request.json
-    if not data or data.get('reject') == None or data.get('username') == None:
-        return 'did not receive reject status or username.', 400
-    
-    company = company_service.resolve_company_registration(username=data.get('username'),
-                                                            reject=data.get('reject'))
+    if not data or data.get("reject") == None or data.get("username") == None:
+        return "did not receive reject status or username.", 400
+
+    company = company_service.resolve_company_registration(
+        username=data.get("username"), reject=data.get("reject")
+    )
     if company == True:
-        return 'successfully deleted.', 200
-    
+        return "successfully deleted.", 200
+
     return jsonify(company.to_dict())
 
 
-@api.post('/company')
+@api.post("/server/company")
 @check_token
 def create_company_registration():
     data = request.json
     if not data:
-        return 'did not receive data.', 400
+        return "did not receive data.", 400
 
-    user = get_logged_in_user(request)    
-    try: 
+    user = get_logged_in_user(request)
+    try:
         company = company_service.create_company_registration(user, data)
         return jsonify(company.to_dict())
 
     except IntegrityError as e:
         return jsonify(str(e)), 400
 
-@api.get('/get-company/<int:company_id>')
+@api.get('/server/get-company/<int:company_id>')
 def get_one_company(company_id:int):
     '''Returns all/approved/not-resolved companies. Type param can be: all, appproved or not-resolved.'''
     if not company_id:
@@ -130,13 +132,13 @@ def get_one_company(company_id:int):
     company = company_service.get_one_company(company_id)
     return jsonify(company.to_dict())
 
-@api.get('/company/<string:type>')
+@api.get("/server/company/<string:type>")
 @check_token
-@required_roles(['admin'])
-def get_company(type:str):
-    '''Returns all/approved/not-resolved companies. Type param can be: all, appproved or not-resolved.'''
+@required_roles(["admin"])
+def get_companies(type: str):
+    """Returns all/approved/not-resolved companies. Type param can be: all, appproved or not-resolved."""
     if not type:
-        return 'did not receive data.', 400
+        return "did not receive data.", 400
 
     companies = company_service.get_all_companies(type)
     return jsonify([company.to_dict() for company in companies])
@@ -146,14 +148,14 @@ def get_company_comments(company_id:int):
     comments = company_service.get_company_comments(company_id)
     return jsonify([c.to_dict() for c in comments])
 
-@api.post('/company/<int:company_id>/comment')
+@api.post('/server/company/<int:company_id>/comment')
 #@check_token
 #@required_roles(['user'])
 def create_comment(company_id: int):
-    '''
-    Logged in user (ony as user role) creates comment for specified (only approved) company. 
+    """
+    Logged in user (ony as user role) creates comment for specified (only approved) company.
     Returns created comment.
-    '''
+    """
     data = request.json
     if not data or not data.get('rating'):
         return 'did not receive data.', 400
@@ -168,7 +170,7 @@ def create_comment(company_id: int):
     except Exception as e:
         return jsonify(str(e)), 403
 
-@api.post('/company/<int:company_id>/interview')
+@api.post('/server/company/<int:company_id>/interview')
 #@check_token
 #@required_roles(['user'])
 def create_interview_comment(company_id: int):
@@ -190,7 +192,7 @@ def create_interview_comment(company_id: int):
     except Exception as e:
         return jsonify(str(e)), 403
 
-@api.post('/company/<int:company_id>/salary')
+@api.post('/server/company/<int:company_id>/salary')
 #@check_token
 #@required_roles(['user'])
 def create_salary(company_id: int):
@@ -218,7 +220,7 @@ def create_salary(company_id: int):
     except Exception as e:
         return jsonify(str(e)), 403
 
-@api.post('/company/<int:company_id>/job')
+@api.post('/server/company/<int:company_id>/job')
 #@check_token
 #@required_roles(['user'])
 def create_job(company_id: int):

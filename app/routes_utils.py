@@ -9,11 +9,13 @@ from sqlalchemy.exc import NoResultFound
 
 
 def get_logged_in_user(request: Request):
-    '''Verifies token. If user from provided token exists, returns user.'''
-    
-    token = request.headers['authorization'].split(' ')[1]
-    user:dict | None | User = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-    found_user = database.find_by_username(user['username']) # find user with username
+    """Verifies token. If user from provided token exists, returns user."""
+
+    token = request.headers["authorization"].split(" ")[1]
+    user: dict | None | User = jwt.decode(
+        token, current_app.config["SECRET_KEY"], algorithms=["HS256"]
+    )
+    found_user = database.find_by_username(user["username"])  # find user with username
     if not user:
         raise NoResultFound(f"No user with given username: {user['username']}")
     return found_user
@@ -22,18 +24,18 @@ def get_logged_in_user(request: Request):
 def check_token(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if not request.headers.get('authorization'): 
-            return jsonify('no token provided'), 403
+        if not request.headers.get("authorization"):
+            return jsonify("no token provided"), 403
         try:
             # verify token
             user = get_logged_in_user(request)
 
         except jwt.ExpiredSignatureError:
-            return 'Signature expired. Please log in again.', 403
+            return "Signature expired. Please log in again.", 403
         except jwt.InvalidTokenError:
-            return 'Invalid token. Please log in again.', 403
+            return "Invalid token. Please log in again.", 403
         except:
-            return 'Problem with authentication.', 403
+            return "Problem with authentication.", 403
 
         response = f(*args, **kwargs)
         return response
@@ -49,14 +51,19 @@ def required_roles(roles: list[str]):
                 # verify token
                 found_user = get_logged_in_user(request)
 
-                if found_user.role.name not in roles: 
-                    return f'provided role: {found_user.role.name}. Accepted roles: {roles}', 403
-                    
+                if found_user.role.name not in roles:
+                    return (
+                        f"provided role: {found_user.role.name}. Accepted roles: {roles}",
+                        403,
+                    )
+
             except:
-                return 'Problem with auth.', 403
+                return "Problem with auth.", 403
 
             return f(*args, **kwargs)
+
         return wrap
+
     return decorator_required_roles
 
 

@@ -1,6 +1,7 @@
 from dataclasses import field
 from typing import Literal
 from app.models import Job, Salary, User, Company, UserRole, Comment, Interview
+
 from app import database
 from sqlalchemy.exc import NoResultFound
 from psycopg2.errors import NotNullViolation
@@ -31,7 +32,6 @@ def update_company(user: User, data: dict, company_id):
         return database.add_or_update(company)
     except NotNullViolation:
         raise NotNullViolation('some fields are missing in request.')
-
 
 def resolve_company_registration(username: str, reject: bool):
     '''Resolves company registration by the owner. Can reject or accept. 
@@ -92,6 +92,7 @@ def get_all_jobs():
     jobs = database.get_all(Job)
     return jobs
 
+
 def get_company_comments(id: int):
     comments = database.find_by_company_id(id)
     return comments
@@ -101,8 +102,8 @@ def create_comment(user: User, company_id: int, data):
     company = database.find_by_id(Company, id=company_id)
     if not company:
         raise NoResultFound(f'no company with id: {company_id}')
-    if not company.approved:
-        raise NotApproved('company registration not approved by admin')
+#    if not company.approved:
+#        raise NotApproved('company registration not approved by admin')
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -123,6 +124,7 @@ def create_interview_comment(user: User, company_id: int, data):
         raise NoResultFound(f'no company with id: {company_id}')
     if not company.approved:
         raise NotApproved('company registration not approved by admin')
+
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -142,6 +144,7 @@ def create_salary(user: User, company_id: int, data):
         raise NoResultFound(f'no company with id: {company_id}')
     if not company.approved:
         raise NotApproved('company registration not approved by admin')
+
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -160,6 +163,7 @@ def create_job(user: User, company_id: int, data):
         raise NoResultFound(f'no company with id: {company_id}')
     if not company.approved:
         raise NotApproved('company registration not approved by admin')
+
     if user.role != UserRole.user:
         raise Exception('must login as user')
 
@@ -177,6 +181,7 @@ def get_job_details(job_id: int):
     job = database.find_by_id(Job, id=job_id)
     print(f"get job details = {job}")
     return job
+
 
 class NotApproved(Exception):
     '''When company registration is not approved by admin.'''

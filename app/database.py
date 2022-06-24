@@ -1,5 +1,5 @@
 from typing import Optional, TypeVar
-from .models import User, db, Comment
+from models import User, db, Comment
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 

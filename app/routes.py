@@ -1,18 +1,17 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import Integer
-
-from app import database
-from app.models import User, Company
-from app.services import auth_service
-from app.services import company_service
-from app.services.company_service import NotApproved
-from app.services.auth_service import AuthException
+import database
+from models import User, Company
+from services import auth_service
+from services import company_service
+from services.company_service import NotApproved
+from services.auth_service import AuthException
 from sqlalchemy.exc import IntegrityError
 
-from app import db
+from create_app import db
     
 api = Blueprint('api', __name__)
-from app.routes_utils import check_token, required_roles, get_logged_in_user
+from routes_utils import check_token, required_roles, get_logged_in_user
 
 
 @api.get("/server/test")
@@ -54,7 +53,7 @@ def get_jobs():
 
 
 @api.get('/server/companies')
-def get_companies():
+def get_companies_all():
     companies = company_service.get_all_companies('all')
     return jsonify([c.to_dict() for c in companies])
 
@@ -206,19 +205,19 @@ def create_salary(company_id: int):
     print(f"salary data = {data}")
     
     user = get_logged_in_user(request)
-    try: 
-        comment = company_service.create_salary(user, company_id, data)
-        return 'did not receive data.', 400
-    print(f"comment data = {data}")
+    # try: 
+    #     comment = company_service.create_salary(user, company_id, data)
+    #     return 'did not receive data.', 400
+    # print(f"comment data = {data}")
     
-    user = get_logged_in_user(request)
-    try: 
-        comment = company_service.create_comment(user, company_id, data)
-        return jsonify(comment.to_dict())
-    except NotApproved as e:
-        return jsonify(str(e)), 400
-    except Exception as e:
-        return jsonify(str(e)), 403
+    # user = get_logged_in_user(request)
+    # try: 
+    #     comment = company_service.create_comment(user, company_id, data)
+    #     return jsonify(comment.to_dict())
+    # except NotApproved as e:
+    #     return jsonify(str(e)), 400
+    # except Exception as e:
+    #     return jsonify(str(e)), 403
 
 @api.post('/server/company/<int:company_id>/job')
 #@check_token
@@ -235,6 +234,6 @@ def create_job(company_id: int):
     print(f"job data = {data}")
     
     user = get_logged_in_user(request)
-    try: 
-        comment = company_service.create_job(user, company_id, data)
+    # try: 
+    #     comment = company_service.create_job(user, company_id, data)
 

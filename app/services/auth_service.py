@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import database
-from app.models import User
+import database
+from models import User
 import jwt
 from flask import current_app
 from datetime import datetime, timedelta

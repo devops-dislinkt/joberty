@@ -1,5 +1,5 @@
 from typing import Literal
-from app import db
+from create_app import db
 from sqlalchemy_serializer import SerializerMixin
 import enum
 

@@ -1,8 +1,8 @@
 from dataclasses import field
 from typing import Literal
-from app.models import Job, Salary, User, Company, UserRole, Comment, Interview
+from models import Job, Salary, User, Company, UserRole, Comment, Interview
 
-from app import database
+import database
 from sqlalchemy.exc import NoResultFound
 from psycopg2.errors import NotNullViolation
 

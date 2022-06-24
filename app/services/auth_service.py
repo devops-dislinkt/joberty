@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import database
-from app.models import User
+import database
+from models import User
 import jwt
 from flask import current_app
 from datetime import datetime, timedelta
@@ -12,6 +12,7 @@ class AuthException(Exception):
 
     def __init__(self, message):
         super().__init__(message)
+
 
 def get_all_users():
     users = database.get_all(User)

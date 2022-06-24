@@ -1,6 +1,6 @@
 import pytest
 from flask.testing import FlaskClient
-from app import create_app, db
+from app.create_app import create_app, db
 from app import database
 from app.services import auth_service
 from app.models import User

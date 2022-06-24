@@ -2,11 +2,11 @@ from functools import wraps
 from flask import jsonify, request, current_app, Response, Request
 from functools import wraps
 import jwt
-from app import database
-from app.models import User
-from .routes import api
+import database
+from models import User
+from routes import api
 from sqlalchemy.exc import NoResultFound
-
+import os
 
 def get_logged_in_user(request: Request):
     """Verifies token. If user from provided token exists, returns user."""
@@ -81,7 +81,7 @@ def handle_key_error(e):
 @api.after_app_request
 def after_request(response):
     header = response.headers
-    header["Access-Control-Allow-Origin"] = "*"
+    header["Access-Control-Allow-Origin"] = os.environ["CORS_ORIGIN"] if "CORS_ORIGIN" in os.environ else "*"
     header["Access-Control-Allow-Headers"] = "*"
     header["Access-Control-Allow-Methods"] = "*"
     return response

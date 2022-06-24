@@ -16,10 +16,19 @@ secret_key = (
 )
 
 DATABASE_CONNECTION_URI = (
-    f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
+    f"postgresql+psycopg2://{os.environ['DATABASE_URL'][11:]}" #/?sslmode=require
 )
 
 KAFKA_1 = os.environ["KAFKA1"] if "KAFKA" in os.environ else "none"
 KAFKA_TOPIC = (
     os.environ["KAFKA_TOPIC"] if "KAFKA_TOPIC" in os.environ else "default-topic"
 )
+
+os.environ["DATABASE_URL"]
+print("OVDEEE", os.environ["DATABASE_URL"])
+
+
+if "DATABASE_URL" in os.environ:
+    print("OVDEEE", os.environ["DATABASE_URL"])
+    user = os.environ["DATABASE_URL"].split(":")[0]
+    password = os.environ["DATABASE_URL"].split(":")[1]

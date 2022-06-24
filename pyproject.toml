@@ -1,14 +1,12 @@
 [tool.poetry]
-name = "user-profile"
-version = "0.0.0"
+name = "joberty"
+version = "0.1.0"
 description = ""
 authors = ["specnazm <laketic.milena98@gmail.com>"]
-
 
 packages = [
     { include = "app" }
 ]
-
 [tool.poetry.dependencies]
 python = "^3.8"
 Flask = "^2.1.2"
@@ -23,9 +21,6 @@ coverage = "^6.4.1"
 build = "^0.8.0"
 PyJWT = "^2.4.0"
 Flask-Cors = "^3.0.10"
-
-[tool.poetry.dev-dependencies]
-
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

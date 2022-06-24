@@ -33,6 +33,8 @@ def find_by_username(username: str) -> Optional[User]:
     """Finds User by username. If User object is not found, None is returned."""
     return User.query.filter_by(username=username).first()
 
+def find_by_company_id(id):
+    return Comment.query.filter_by(company_id=id)
 
 def find_by_company_id(id):
     return Comment.query.filter_by(company_id=id)

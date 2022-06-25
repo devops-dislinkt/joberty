@@ -144,7 +144,9 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN_TEST_ENV }}
       - name: import apply
+        working-directory: ./terraform
         run: terraform import heroku_app.servers servers-terraform
+
       - name: Terraform Format
         id: fmt
         working-directory: ./terraform

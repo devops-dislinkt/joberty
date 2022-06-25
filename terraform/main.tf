@@ -11,10 +11,17 @@ provider "heroku" {
   # Configuration options
 }
 
+
+resource "heroku_app" "servers" {
+}
+
+
 resource "heroku_build" "servers" {
-  app_id = "servers-terraform"
+  app_id = heroku_app.servers.id
 
   source {
     path = "servers"
   }
 }
+
+

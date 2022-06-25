@@ -1,6 +1,15 @@
-provider "heroku" {
+terraform {
+  required_providers {
+    heroku = {
+      source = "heroku/heroku"
+      version = "5.1.0"
+    }
+  }
 }
 
+provider "heroku" {
+  # Configuration options
+}
 
 resource "heroku_app" "servers" {
   name   = "servers-terraform"

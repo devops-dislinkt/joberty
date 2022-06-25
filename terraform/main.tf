@@ -12,10 +12,6 @@ provider "heroku" {
 }
 
 
-resource "heroku_app" "servers" {
-}
-
-
 resource "heroku_build" "servers" {
   app_id = heroku_app.servers.id
 

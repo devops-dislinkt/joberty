@@ -12,7 +12,7 @@ provider "heroku" {
 }
 
 resource "heroku_app" "servers" {
-  name   =  "name"
+  name   =  "servers-terraform"
   region = "eu"
   stack  = "container"
 }

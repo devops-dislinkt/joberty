@@ -162,7 +162,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         if: github.event_name == 'pull_request'
-        working-directory: ./infrastructure
+        working-directory: ./terraform
         run: terraform plan -no-color -input=false
         continue-on-error: true
 
@@ -201,7 +201,7 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: ./infrastructure
+        working-directory: ./terraform
         run: terraform apply -auto-approve -input=false
 
   # heroku-deploy:

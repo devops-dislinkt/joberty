@@ -1,4 +1,4 @@
-provider "heroku/heroku" {
+provider "heroku" {
 }
 
 

@@ -18,13 +18,12 @@ resource "heroku_app" "servers" {
 }
 
 
+resource "heroku_build" "servers" {
+  app_id = heroku_app.servers.id
 
-# resource "heroku_build" "servers" {
-#   app_id = heroku_app.servers.id
-
-#   source {
-#     path = "servers"
-#   }
-# }
+  source {
+    path = "servers"
+  }
+}
 
 

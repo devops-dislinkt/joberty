@@ -202,11 +202,12 @@ jobs:
       - name: Terraform Apply
         # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ./terraform
+        env:
+          HEROKU_API_KEY : ${{secrets.HEROKU_API_KEY}}
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
+          HEROKU_EMAIL: ${{secrets.HEROKU_EMAIL}}
         run: terraform apply -auto-approve -input=false
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
-          heroku_email: ${{secrets.HEROKU_EMAIL}}
+       
 
   # heroku-deploy:
   #   name: 'Heroku-Deploy'

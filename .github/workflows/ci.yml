@@ -154,7 +154,11 @@ jobs:
         working-directory: ./terraform
         run: terraform init
 
-      - name: import apply
+      - name: import 
+        env:
+          HEROKU_API_KEY : ${{secrets.HEROKU_API_KEY}}
+          HEROKU_APP_NAME: ${{secrets.HEROKU_APP_NAME}}
+          HEROKU_EMAIL: ${{secrets.HEROKU_EMAIL}}
         working-directory: ./terraform
         run: terraform import heroku_app.servers servers-terraform
 

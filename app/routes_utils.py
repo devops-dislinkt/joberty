@@ -81,7 +81,7 @@ def handle_key_error(e):
 @api.after_app_request
 def after_request(response):
     header = response.headers
-    header["Access-Control-Allow-Origin"] = os.environ["CORS_ORIGIN"] if "CORS_ORIGIN" in os.environ else "*"
+    header["Access-Control-Allow-Origin"] =  "*"
     header["Access-Control-Allow-Headers"] = "*"
     header["Access-Control-Allow-Methods"] = "*"
     return response
